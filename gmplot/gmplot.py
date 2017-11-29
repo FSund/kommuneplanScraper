@@ -46,12 +46,12 @@ class GoogleMapPlotter(object):
     def grid(self, slat, elat, latin, slng, elng, lngin):
         self.gridsetting = [slat, elat, latin, slng, elng, lngin]
 
-    def marker(self, lat, lng, color='#FF0000', c=None, title="no implementation"):
+    def marker(self, lat, lng, color='#FF0000', c=None, text=None):
         if c:
             color = c
         color = self.color_dict.get(color, color)
         color = self.html_color_codes.get(color, color)
-        self.points.append((lat, lng, color[1:], title))
+        self.points.append((lat, lng, color[1:], text))
 
     def scatter(self, lats, lngs, color=None, size=None, marker=True, c=None, s=None, **kwargs):
         color = color or c
@@ -276,19 +276,28 @@ class GoogleMapPlotter(object):
         f.write('\t\t};\n')
         f.write(
             '\t\tvar map = new google.maps.Map(document.getElementById("map_canvas"), myOptions);\n')
+        # add a single InfoWindow
+        f.write('\t\tvar infowindow = new google.maps.InfoWindow();\n')
         f.write('\n')
 
-    def write_point(self, f, lat, lon, color, title):
+    def write_point(self, f, lat, lon, color, text):
         f.write('\t\tvar latlng = new google.maps.LatLng(%f, %f);\n' %
                 (lat, lon))
         f.write('\t\tvar img = new google.maps.MarkerImage(\'%s\');\n' %
                 (self.coloricon % color))
         f.write('\t\tvar marker = new google.maps.Marker({\n')
-        f.write('\t\ttitle: "%s",\n' % title)
-        f.write('\t\ticon: img,\n')
-        f.write('\t\tposition: latlng\n')
+        f.write('\t\t\ticon: img,\n')
+        f.write('\t\t\tposition: latlng\n')
         f.write('\t\t});\n')
         f.write('\t\tmarker.setMap(map);\n')
+
+        # open InfoWindow displaying "title" if marker is clicked
+        if text is not None:
+            f.write('\t\tgoogle.maps.event.addListener(marker, "click", function() {\n')
+            f.write('\t\t\tinfowindow.setContent("%s");\n' % text)
+            f.write('\t\t\tinfowindow.open(map, this);\n')
+            f.write('\t\t});\n')
+
         f.write('\n')
 
     def write_polyline(self, f, path, settings):
