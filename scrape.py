@@ -55,4 +55,4 @@ gmap.coloricon = "http://www.googlemapsmarkers.com/v1/%s/" # fix
 for (lat, lon), date in zip(latlons, dates):
     gmap.marker(lat, lon, text = date)
     
-gmap.draw("mymap.html")
+gmap.draw("map.html")
